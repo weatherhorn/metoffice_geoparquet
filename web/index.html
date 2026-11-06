@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Met Office observations · GeoParquet viewer</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<style>
+  :root { --bg:#0e1420; --panel:rgba(16,23,38,.92); --fg:#e8edf5; --mut:#8fa0b8; --acc:#4cc9f0; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; font:14px/1.4 system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+  #map { position:absolute; inset:0; }
+  .panel { position:absolute; background:var(--panel); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.08); border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.4); }
+  #side { top:14px; left:14px; width:330px; max-height:calc(100% - 28px); display:flex; flex-direction:column; padding:16px; }
+  h1 { margin:0; font-size:18px; }
+  .sub { color:var(--mut); font-size:12px; margin:2px 0 10px; }
+  #chips { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+  .chip { cursor:pointer; padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:transparent; color:var(--fg); font:inherit; font-size:11.5px; line-height:1.5; }
+  .chip:hover { border-color:var(--acc); }
+  .chip.on { background:var(--acc); color:#04202b; border-color:var(--acc); font-weight:600; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+  .stat { background:rgba(255,255,255,.05); border-radius:10px; padding:8px; text-align:center; }
+  .stat b { display:block; font-size:16px; } .stat span { font-size:11px; color:var(--mut); }
+  #list { overflow:auto; flex:1; margin:0 -6px; padding:0 6px; }
+  .item { display:flex; align-items:center; gap:8px; padding:5px 6px; border-radius:8px; cursor:pointer; }
+  .item:hover { background:rgba(255,255,255,.07); }
+  .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  .item .n { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item .v { font-variant-numeric:tabular-nums; font-weight:600; }
+  .src { margin-top:10px; font-size:11px; color:var(--mut); line-height:1.4; }
+  .src a { color:var(--acc); }
+  #legend { right:14px; bottom:34px; padding:10px 14px; width:240px; }
+  #legend .bar { height:10px; border-radius:5px; margin:6px 0 3px; }
+  #legend .ticks { display:flex; justify-content:space-between; font-size:11px; color:var(--mut); }
+  #legend .t { font-size:12px; font-weight:600; }
+  .maplibregl-popup-content { background:#141c2d; color:var(--fg); border-radius:12px; padding:12px 14px; min-width:200px; }
+  .maplibregl-popup-tip { border-top-color:#141c2d !important; border-bottom-color:#141c2d !important; }
+  .maplibregl-popup-close-button { color:var(--fg); }
+  .pop { max-height:50vh; overflow-y:auto; } .pop h3 { margin:0 22px 2px 0; font-size:15px; } .pop small { color:var(--mut); }
+  .pop table { width:100%; margin-top:8px; border-collapse:collapse; } .pop td { padding:2px 0; }
+  .pop td:last-child { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; padding-left:12px; }
+  #status { position:absolute; inset:0; display:grid; place-items:center; background:var(--bg); z-index:10; color:var(--mut); }
+  @media (max-width:700px){
+    #side { top:auto; left:8px; right:8px; bottom:8px; width:auto; max-height:45%; padding:10px 12px; }
+    #list { display:none; } .stats { margin-bottom:6px; }
+    #legend { top:8px; left:8px; right:auto; bottom:auto; width:190px; padding:7px 10px; }
+    .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right { display:none; }
+  }
+</style>
+</head>
+<body>
+<div id="status">Loading GeoParquet…</div>
+<div id="map"></div>
+<div id="side" class="panel">
+  <h1>🌦️ Met Office observations</h1>
+  <div class="sub" id="time"></div>
+  <div id="chips"></div>
+  <div class="stats" id="stats"></div>
+  <div id="list"></div>
+  <div class="src">Contains Met Office data © Crown copyright. Source: <a href="https://datahub.metoffice.gov.uk/" target="_blank" rel="noopener">Met Office Weather DataHub</a> (Land Observations). Parameters use <a href="https://dataplatform.knmi.nl/dataset/10-minute-in-situ-meteorological-observations-1-0" target="_blank" rel="noopener">KNMI</a> names. Not an official Met Office product.
+    <br><a href="obs.parquet" download>⬇ obs.parquet</a> · <a href="https://github.com/weatherhorn/metoffice_geoparquet" target="_blank" rel="noopener">Code &amp; documentation</a></div>
+</div>
+<div id="legend" class="panel"></div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script type="module">
+import { parquetMetadataAsync, parquetReadObjects } from "https://esm.sh/hyparquet@1.32.0";
+
+const DATA_URL = new URL(new URLSearchParams(location.search).get("parquet") || "obs.parquet", location.href).href;
+const SKIP = new Set(["station_id","station_name","source","wsi","time","lat","lon","height","geometry","bbox"]);
+// Colour ramps and domains for the common parameters; other columns get an automatic min-max range
+const PRESET = {
+  ta:{ramp:"turbo",dom:[-5,30]}, td:{ramp:"turbo",dom:[-5,25]}, ff:{ramp:"wind",dom:[0,15]}, gff:{ramp:"wind",dom:[0,25]}, fx:{ramp:"wind",dom:[0,25]},
+  rh:{ramp:"humid",dom:[40,100]}, pp:{ramp:"press",dom:[990,1040]}, qnh:{ramp:"press",dom:[990,1040]}, vv:{ramp:"vis",dom:[0,20000]}, n:{ramp:"cloud",dom:[0,8]}, dd:{ramp:"hue",dom:[0,360]},
+};
+const RAMPS = {
+  turbo:["#30123b","#4662d7","#36aaf9","#1ae4b6","#72fe5e","#c7ef34","#faba39","#f66b19","#ca2a04","#7a0403"],
+  wind:["#0d1b4c","#1f5fbf","#2ec4b6","#9ae66e","#ffd166","#ef476f","#8e1b6b"],
+  humid:["#a0522d","#e0c27a","#b8e0b0","#4cc9f0","#1d4ed8"],
+  press:["#6a0dad","#2563eb","#22d3ee","#a3e635","#facc15","#f97316","#dc2626"],
+  vis:["#5b2a86","#8f4a9e","#4a6fe3","#4cc9f0","#e0f7ff"],
+  cloud:["#ffe27a","#d7dde6","#8e9bb0","#4a5568"],
+  hue:["#4cc9f0","#7bd88f","#ffd166","#ef476f","#4cc9f0"],
+  auto:["#2b2d42","#3a6ea5","#4cc9f0","#7bd88f","#ffd166","#ef476f"],
+};
+const hex = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+function color(ramp, t) {
+  const c = RAMPS[ramp]; t = Math.max(0, Math.min(1, t));
+  const x = t*(c.length-1), i = Math.min(c.length-2, Math.floor(x)), f = x-i, a = hex(c[i]), b = hex(c[i+1]);
+  return "#" + a.map((v,k)=>Math.round(v+(b[k]-v)*f).toString(16).padStart(2,"0")).join("");
+}
+const fmt = v => v == null ? "–" : (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
+const statusEl = document.getElementById("status");
+
+let rows, vars;
+try {
+  let file, metadata;
+  try {
+    const r = await fetch(DATA_URL, { cache: "reload" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    file = await r.arrayBuffer();
+    metadata = await parquetMetadataAsync(file);
+  } catch (err) { throw new Error(`${DATA_URL} could not be loaded (${err.message})`); }
+  const kv = Object.fromEntries((metadata.key_value_metadata ?? []).map(e => [e.key, e.value]));
+  const described = JSON.parse(kv["knmi:variables"] ?? "{}");
+  rows = await parquetReadObjects({ file, metadata });
+  vars = metadata.schema.slice(1).map(s => s.name).filter(n => !SKIP.has(n)).map(k => {
+    const vals = rows.map(r => r[k]).filter(v => v != null).map(Number);
+    const p = PRESET[k] ?? { ramp:"auto", dom:[Math.min(...vals), Math.max(...vals)] };
+    return { key:k, long:described[k]?.long_name ?? k, unit:described[k]?.units ?? "", ...p, n:vals.length };
+  });
+} catch (err) { statusEl.textContent = "Loading failed: " + err.message; throw err; }
+
+const time = rows.reduce((m, r) => r.time > m ? r.time : m, rows[0].time);
+document.getElementById("time").textContent =
+  `${new Date(time).toLocaleString("en-GB", { dateStyle:"full", timeStyle:"short" })} · hourly · ${rows.length} stations · ${vars.length} parameters`;
+
+const num = (r, k) => r[k] == null ? null : Number(r[k]);
+const map = new maplibregl.Map({ container:"map", style:"https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  bounds:[[-8.5,49.8],[2,60.9]], fitBoundsOptions:{ padding:{ left:360, top:30, right:30, bottom:30 } }, attributionControl:{ compact:true } });
+map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "bottom-left");
+
+let cur = vars.find(v => v.key === "ta") ?? vars[0], popup;
+const feats = () => ({ type:"FeatureCollection", features: rows.map((r,i) => {
+  const v = num(r, cur.key);
+  return { type:"Feature", geometry:{ type:"Point", coordinates:[r.lon, r.lat] },
+    properties:{ i, label: v==null ? "" : fmt(v), color: v==null ? "#566" : color(cur.ramp, (v-cur.dom[0])/((cur.dom[1]-cur.dom[0])||1)) } };
+}) });
+
+map.on("load", () => {
+  map.addSource("st", { type:"geojson", data:feats() });
+  map.addLayer({ id:"glow", type:"circle", source:"st", paint:{ "circle-radius":["interpolate",["linear"],["zoom"],4,10,9,26], "circle-color":["get","color"], "circle-opacity":.22, "circle-blur":.8 }});
+  map.addLayer({ id:"pts", type:"circle", source:"st", paint:{ "circle-radius":["interpolate",["linear"],["zoom"],4,5,9,11], "circle-color":["get","color"], "circle-stroke-color":"#fff", "circle-stroke-width":1.5 }});
+  map.addLayer({ id:"lbl", type:"symbol", source:"st", layout:{ "text-field":["get","label"], "text-size":12, "text-font":["Montserrat Medium","Open Sans Semibold","Noto Sans Regular"], "text-offset":[0,1.4] },
+    paint:{ "text-color":"#fff", "text-halo-color":"rgba(0,0,0,.85)", "text-halo-width":1.5 }});
+  map.on("click","pts", e => show(e.features[0].properties.i));
+  map.on("mouseenter","pts", () => map.getCanvas().style.cursor = "pointer");
+  map.on("mouseleave","pts", () => map.getCanvas().style.cursor = "");
+  statusEl.remove();
+  render();
+});
+
+function show(i) {
+  const r = rows[i];
+  const trs = vars.map(v => { const x = num(r, v.key); return `<tr><td title="${v.key}">${v.long}</td><td>${fmt(x)} ${x==null?"":v.unit}</td></tr>`; }).join("");
+  popup?.remove();
+  popup = new maplibregl.Popup({ offset:14, maxWidth:"320px" }).setLngLat([r.lon, r.lat])
+    .setHTML(`<div class="pop"><h3>${r.station_name}</h3><small>Geohash ${r.station_id} · ${new Date(r.time).toLocaleString("en-GB", { dateStyle:"medium", timeStyle:"short" })}</small><table>${trs}</table></div>`).addTo(map);
+}
+
+const chips = document.getElementById("chips");
+for (const v of vars) {
+  const b = document.createElement("button"); b.className = "chip"; b.textContent = v.key; b.title = `${v.long} (${v.n} stations)`; b.dataset.k = v.key;
+  b.onclick = () => { cur = v; render(); }; chips.append(b);
+}
+
+function render() {
+  chips.querySelectorAll(".chip").forEach(b => b.classList.toggle("on", b.dataset.k === cur.key));
+  map.getSource("st").setData(feats());
+  const items = rows.map((r,i) => ({ r, i, v:num(r, cur.key) })).filter(x => x.v != null).sort((a,b) => b.v - a.v);
+  const vs = items.map(x => x.v);
+  const st = [["Max", Math.max(...vs)], ["Mean", vs.reduce((a,b)=>a+b,0)/vs.length], ["Min", Math.min(...vs)]];
+  document.getElementById("stats").innerHTML = st.map(([l,v]) => `<div class="stat"><b>${fmt(v)}<small> ${cur.unit}</small></b><span>${l}</span></div>`).join("");
+  document.getElementById("list").innerHTML = items.map(({r,i,v}) =>
+    `<div class="item" data-i="${i}"><span class="dot" style="background:${color(cur.ramp,(v-cur.dom[0])/((cur.dom[1]-cur.dom[0])||1))}"></span><span class="n">${r.station_name}</span><span class="v">${fmt(v)} ${cur.unit}</span></div>`).join("");
+  document.querySelectorAll(".item").forEach(el => el.onclick = () => {
+    const i = +el.dataset.i; map.flyTo({ center:[rows[i].lon, rows[i].lat], zoom:Math.max(map.getZoom(), 8), offset:[150,0] }); show(i);
+  });
+  document.getElementById("legend").innerHTML = `<div class="t">${cur.long} (${cur.unit})</div><div class="bar" style="background:linear-gradient(90deg,${RAMPS[cur.ramp].join(",")})"></div>
+    <div class="ticks"><span>${fmt(cur.dom[0])}</span><span>${fmt((cur.dom[0]+cur.dom[1])/2)}</span><span>${fmt(cur.dom[1])}</span></div>`;
+}
+</script>
+</body>
+</html>
