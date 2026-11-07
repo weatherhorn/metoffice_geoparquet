@@ -5,11 +5,6 @@ on:
     # Free Met Office plan: 360 API calls/day. 40 stations x 8 runs/day = 320 calls.
     - cron: "10 */3 * * *"
   workflow_dispatch:
-    inputs:
-      generate_stations:
-        description: Generate the initial station list
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -21,24 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  generate:
-    if: inputs.generate_stations
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - name: Download latest observations
-        env:
-          METOFFICE_API_KEY: ${{ secrets.METOFFICE_API_KEY }}
-        run: uv run --with requests python download.py
-      - name: Convert to GeoParquet
-        run: uv run --with pandas --with geopandas --with pyarrow --with numpy python convert.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: observations
-          path: web/obs.parquet
   deploy:
-    if: ${{ !inputs.generate_stations }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
