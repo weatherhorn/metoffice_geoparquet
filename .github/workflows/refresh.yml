@@ -21,7 +21,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  generate:
+    if: inputs.generate_stations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Generate station list
+        env:
+          METOFFICE_API_KEY: ${{ secrets.METOFFICE_API_KEY }}
+        run: uv run --with requests --with numpy python stations.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stations
+          path: stations.json
   deploy:
+    if: ${{ !inputs.generate_stations }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -29,30 +44,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Generate station list
-        if: inputs.generate_stations
-        env:
-          METOFFICE_API_KEY: ${{ secrets.METOFFICE_API_KEY }}
-        run: uv run --with requests --with numpy python stations.py
-      - uses: actions/upload-artifact@v4
-        if: inputs.generate_stations
-        with:
-          name: stations
-          path: stations.json
       - name: Download latest observations
-        if: ${{ !inputs.generate_stations }}
         env:
           METOFFICE_API_KEY: ${{ secrets.METOFFICE_API_KEY }}
         run: uv run --with requests python download.py
       - name: Convert to GeoParquet
-        if: ${{ !inputs.generate_stations }}
         run: uv run --with pandas --with geopandas --with pyarrow --with numpy python convert.py
       - uses: actions/configure-pages@v5
-        if: ${{ !inputs.generate_stations }}
       - uses: actions/upload-pages-artifact@v3
-        if: ${{ !inputs.generate_stations }}
         with:
           path: web
       - id: deployment
-        if: ${{ !inputs.generate_stations }}
         uses: actions/deploy-pages@v4
