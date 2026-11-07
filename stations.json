@@ -1,0 +1,322 @@
+[
+ {
+  "geohash": "gbgebw",
+  "area": "Isles of Scilly",
+  "region": "sw",
+  "country": "England",
+  "lat": 49.91364,
+  "lon": -6.30066
+ },
+ {
+  "geohash": "gbuxmc",
+  "area": "Cornwall",
+  "region": "sw",
+  "country": "England",
+  "lat": 50.5014,
+  "lon": -4.6637
+ },
+ {
+  "geohash": "gc3ev1",
+  "area": "Ireland",
+  "region": null,
+  "country": "Ireland",
+  "lat": 52.69867,
+  "lon": -8.91541
+ },
+ {
+  "geohash": "gc4nsm",
+  "area": "Ireland",
+  "region": null,
+  "country": "Ireland",
+  "lat": 51.79779,
+  "lon": -8.24524
+ },
+ {
+  "geohash": "gc7xcz",
+  "area": "Ireland",
+  "region": null,
+  "country": "Ireland",
+  "lat": 53.43475,
+  "lon": -6.24573
+ },
+ {
+  "geohash": "gcdt54",
+  "area": "County Fermanagh",
+  "region": "ni",
+  "country": "Northern Ireland",
+  "lat": 54.33014,
+  "lon": -7.59705
+ },
+ {
+  "geohash": "gcg9gv",
+  "area": "County Antrim",
+  "region": "ni",
+  "country": "Northern Ireland",
+  "lat": 55.18158,
+  "lon": -6.15784
+ },
+ {
+  "geohash": "gchyhw",
+  "area": "Carmarthenshire",
+  "region": "wl",
+  "country": "Wales",
+  "lat": 51.71539,
+  "lon": -4.36707
+ },
+ {
+  "geohash": "gcksk1",
+  "area": "Gwynedd",
+  "region": "wl",
+  "country": "Wales",
+  "lat": 52.78656,
+  "lon": -4.7406
+ },
+ {
+  "geohash": "gcms1h",
+  "area": "Powys",
+  "region": "wl",
+  "country": "Wales",
+  "lat": 52.75909,
+  "lon": -3.46619
+ },
+ {
+  "geohash": "gcn45v",
+  "area": "Somerset",
+  "region": "sw",
+  "country": "England",
+  "lat": 51.00677,
+  "lon": -2.64221
+ },
+ {
+  "geohash": "gcpc1q",
+  "area": "West Sussex",
+  "region": "se",
+  "country": "England",
+  "lat": 50.83649,
+  "lon": -0.29114
+ },
+ {
+  "geohash": "gcpwxz",
+  "area": "Hertfordshire",
+  "region": "ee",
+  "country": "England",
+  "lat": 51.80878,
+  "lon": -0.35706
+ },
+ {
+  "geohash": "gcqf99",
+  "area": "Warwickshire",
+  "region": "wm",
+  "country": "England",
+  "lat": 52.47894,
+  "lon": -1.6864
+ },
+ {
+  "geohash": "gctb66",
+  "area": "Merseyside",
+  "region": "nw",
+  "country": "England",
+  "lat": 53.49518,
+  "lon": -3.05969
+ },
+ {
+  "geohash": "gctpub",
+  "area": "Dumfries and Galloway",
+  "region": "dg",
+  "country": "Scotland",
+  "lat": 54.80255,
+  "lon": -4.00452
+ },
+ {
+  "geohash": "gcuezd",
+  "area": "South Ayrshire",
+  "region": "st",
+  "country": "Scotland",
+  "lat": 55.51666,
+  "lon": -4.58679
+ },
+ {
+  "geohash": "gcwc40",
+  "area": "West Yorkshire",
+  "region": "yh",
+  "country": "England",
+  "lat": 53.61603,
+  "lon": -1.66443
+ },
+ {
+  "geohash": "gcwq3n",
+  "area": "Cumbria",
+  "region": "nw",
+  "country": "England",
+  "lat": 54.57184,
+  "lon": -2.4115
+ },
+ {
+  "geohash": "gcxt28",
+  "area": "North Yorkshire",
+  "region": "yh",
+  "country": "England",
+  "lat": 54.3631,
+  "lon": -0.67566
+ },
+ {
+  "geohash": "gcyg79",
+  "area": "Northumberland",
+  "region": "ne",
+  "country": "England",
+  "lat": 55.42328,
+  "lon": -1.59851
+ },
+ {
+  "geohash": "gf4wr9",
+  "area": "Na h-Eileanan Siar",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 57.35687,
+  "lon": -7.39929
+ },
+ {
+  "geohash": "gf517k",
+  "area": "Argyll and Bute",
+  "region": "st",
+  "country": "Scotland",
+  "lat": 56.49445,
+  "lon": -6.88293
+ },
+ {
+  "geohash": "gf5yws",
+  "area": "Highland",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 57.4173,
+  "lon": -5.68542
+ },
+ {
+  "geohash": "gf7e0j",
+  "area": "Na h-Eileanan Siar",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 58.21381,
+  "lon": -6.32263
+ },
+ {
+  "geohash": "gfhesb",
+  "area": "Highland",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 56.86798,
+  "lon": -4.70764
+ },
+ {
+  "geohash": "gfjbwz",
+  "area": "Fife",
+  "region": "ta",
+  "country": "Scotland",
+  "lat": 56.37909,
+  "lon": -2.86194
+ },
+ {
+  "geohash": "gfkgdg",
+  "area": "Highland",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 58.29071,
+  "lon": -4.44397
+ },
+ {
+  "geohash": "gfm8k6",
+  "area": "Moray",
+  "region": "gr",
+  "country": "Scotland",
+  "lat": 57.71393,
+  "lon": -3.32336
+ },
+ {
+  "geohash": "gfmu99",
+  "area": "Highland",
+  "region": "he",
+  "country": "Scotland",
+  "lat": 58.45551,
+  "lon": -3.09265
+ },
+ {
+  "geohash": "gfnxps",
+  "area": "Aberdeenshire",
+  "region": "gr",
+  "country": "Scotland",
+  "lat": 57.50519,
+  "lon": -1.77429
+ },
+ {
+  "geohash": "gfsb5g",
+  "area": "Highland",
+  "region": "os",
+  "country": "Scotland",
+  "lat": 59.08173,
+  "lon": -4.40002
+ },
+ {
+  "geohash": "gfxnj5",
+  "area": "Shetland Islands",
+  "region": "os",
+  "country": "Scotland",
+  "lat": 60.13641,
+  "lon": -1.18103
+ },
+ {
+  "geohash": "u0bbfv",
+  "area": "France",
+  "region": null,
+  "country": "France",
+  "lat": 49.3808,
+  "lon": 1.18103
+ },
+ {
+  "geohash": "u0cm1w",
+  "area": "France",
+  "region": null,
+  "country": "France",
+  "lat": 50.13336,
+  "lon": 1.82922
+ },
+ {
+  "geohash": "u10fys",
+  "area": "Kent",
+  "region": "se",
+  "country": "England",
+  "lat": 51.13312,
+  "lon": 1.34583
+ },
+ {
+  "geohash": "u128tb",
+  "area": "Suffolk",
+  "region": "ee",
+  "country": "England",
+  "lat": 52.12189,
+  "lon": 0.9613
+ },
+ {
+  "geohash": "u12v1x",
+  "area": "Norfolk",
+  "region": "ee",
+  "country": "England",
+  "lat": 52.95135,
+  "lon": 1.1261
+ },
+ {
+  "geohash": "u1805w",
+  "area": "Lincolnshire",
+  "region": "em",
+  "country": "England",
+  "lat": 53.47321,
+  "lon": 0.1593
+ },
+ {
+  "geohash": "u4432v",
+  "area": "Norway",
+  "region": null,
+  "country": "Norway",
+  "lat": 56.49994,
+  "lon": 3.20251
+ }
+]
